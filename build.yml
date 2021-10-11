@@ -1,0 +1,41 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: configure
+      shell: cmd
+      run: |
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        mkdir build
+        cd build
+        set CC=cl
+        set CXX=cl
+        cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+    - name: make
+      shell: cmd
+      run: |
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        cmake --build build
+    - name: dist
+      shell: cmd
+      run: |
+        mkdir dist
+        copy build\nlasvc2.dll dist
+        copy install.reg dist
+    - name: artifact
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        # Artifact name
+        name: ncsi-override-amd64
+        # Directory containing files to upload
+        path: dist
